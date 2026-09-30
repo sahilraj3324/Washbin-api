@@ -10,6 +10,8 @@ import { DatabaseModule } from './database/database.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { CustomersModule } from './customers/customers.module';
+import { AdminModule } from './admin/admin.module';
+import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { PartnerAuthModule } from './partner-auth/partner-auth.module';
 import { PartnerAssignmentModule } from './partner-assignment/partner-assignment.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -28,6 +30,8 @@ import { ServicesModule } from './services/services.module';
     CustomersModule,
     CustomerAuthModule,
     PartnersModule,
+    AdminModule,
+    AdminAuthModule,
     PartnerAuthModule,
     CategoriesModule,
     ServicesModule,
