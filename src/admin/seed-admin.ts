@@ -15,8 +15,8 @@ async function seed() {
     return;
   }
 
-  const email = process.env.ADMIN_EMAIL ?? 'admin@washbin.com';
-  const password = process.env.ADMIN_PASSWORD ?? 'admin123';
+  const email = process.env.ADMIN_EMAIL ?? 'admin@gmail.com';
+  const password = process.env.ADMIN_PASSWORD ?? '12345678';
   const name = process.env.ADMIN_NAME ?? 'Super Admin';
 
   const passwordHash = await bcrypt.hash(password, 10);
