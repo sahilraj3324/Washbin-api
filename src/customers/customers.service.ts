@@ -19,6 +19,21 @@ export interface CreateCustomerInput {
 
 export type UpdateCustomerInput = Partial<CreateCustomerInput>;
 
+export interface PaginatedCustomers {
+  data: Customer[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CustomerStats {
+  total: number;
+  active: number;
+  inactive: number;
+  blocked: number;
+}
+
 @Injectable()
 export class CustomersService {
   constructor(
@@ -41,6 +56,61 @@ export class CustomersService {
 
   async findAll(): Promise<Customer[]> {
     return this.customerModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async findPaginated(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }): Promise<PaginatedCustomers> {
+    const page = Math.max(1, options.page ?? 1);
+    const limit = Math.min(100, Math.max(1, options.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const filter: Record<string, unknown> = {};
+
+    if (options.status) {
+      filter.status = options.status;
+    }
+
+    if (options.search) {
+      const regex = new RegExp(options.search, 'i');
+      filter.$or = [{ name: regex }, { phone: regex }, { email: regex }];
+    }
+
+    const [data, total] = await Promise.all([
+      this.customerModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.customerModel.countDocuments(filter).exec(),
+    ]);
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getStats(): Promise<CustomerStats> {
+    const [total, active, inactive, blocked] = await Promise.all([
+      this.customerModel.countDocuments().exec(),
+      this.customerModel.countDocuments({ status: 'active' }).exec(),
+      this.customerModel.countDocuments({ status: 'inactive' }).exec(),
+      this.customerModel.countDocuments({ status: 'blocked' }).exec(),
+    ]);
+    return { total, active, inactive, blocked };
+  }
+
+  async updateStatus(id: string, status: string): Promise<Customer> {
+    this.assertValidId(id);
+    const updated = await this.customerModel
+      .findByIdAndUpdate(id, { status }, { new: true, runValidators: true })
+      .exec();
+    if (!updated) {
+      throw new NotFoundException(`Customer ${id} not found`);
+    }
+    return updated;
   }
 
   async findOne(id: string): Promise<Customer> {
